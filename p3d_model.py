@@ -373,6 +373,19 @@ def get_optim_policies(model=None,modality='RGB',enable_pbn=True):
 		 'name': "BN scale/shift"},
 	]
 
+class add_softmax(nn.Module):
+    def __init__(self, input):
+        super(add_softmax, self).__init__()
+        self.logsoftmax = nn.Softmax()
+    def forward(self, input):
+    	output = self.logsoftmax(input)
+    	return output
+
+def transfer_model(model,num_classes):
+	num_ftrs=model.fc.in_features
+	model.fc=nn.Linear(num_ftrs,num_classes)
+	# model = add_softmax(model)
+	return model
 
 
 if __name__ == '__main__':
