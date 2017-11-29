@@ -154,6 +154,7 @@ def main(options):
 	
 
 	transformations = transforms.Compose([transforms.Scale((options.size,options.size)),
+									transforms.Normalize(),
 									transforms.ToTensor()
 									])
 	
