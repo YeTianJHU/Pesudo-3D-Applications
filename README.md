@@ -1,2 +1,2 @@
-# Pesudo_3D_Applications
-Applications of Pseudo-3D Network
+# Pesudo-3D-Applications
+Several applications of Pseudo-3D Network 
