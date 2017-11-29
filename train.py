@@ -22,7 +22,7 @@ import random
 from PIL import Image
 import cv2
 
-from p3d_model import *
+from p3d_model import transfer_model, P3D199, get_optim_policies
 
 logging.basicConfig(
 	format='%(asctime)s %(levelname)s: %(message)s',
@@ -132,6 +132,8 @@ class ucf101Dataset(Dataset):
 		return label_dict
 
 
+
+
 def main(options):
 	# Path configuration
 
@@ -154,8 +156,8 @@ def main(options):
 	
 
 	transformations = transforms.Compose([transforms.Scale((options.size,options.size)),
-									transforms.Normalize(),
-									transforms.ToTensor()
+									transforms.ToTensor(),
+									transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 									])
 	
 	dset_train = ucf101Dataset(data_folder, train_file, label_file, transformations, size=options.size)
@@ -178,15 +180,19 @@ def main(options):
 		cuda.set_device(options.gpuid[0])
 	
 	# Initial the model
-	model = P3D199(pretrained=False,num_classes=101)
+	model = P3D199(pretrained=True,num_classes=400)
+	model = transfer_model(model,num_classes=101)
+
+
 	if use_cuda > 0:
-		cnn_model.cuda()
+		model.cuda()
 
 
 	# Binary cross-entropy loss
-	# criterion = torch.nn.CrossEntropyLoss()
-	criterion = torch.nn.NLLLoss()
-	optimizer = eval("torch.optim." + options.optimizer)(model.parameters())
+	criterion = torch.nn.CrossEntropyLoss()
+	# criterion = torch.nn.NLLLoss()
+	# optimizer = eval("torch.optim." + options.optimizer)(model.parameters())get_optim_policies(model=None,modality='RGB',enable_pbn=True)
+	optimizer = eval("torch.optim." + options.optimizer)(get_optim_policies(model=model,modality='RGB',enable_pbn=True))
 
 	# main training loop
 	last_dev_avg_loss = float("inf")
@@ -202,7 +208,11 @@ def main(options):
 				vid_tensor, labels = Variable(vid_tensor), Variable(labels)
 
 			train_output = model(vid_tensor)
-			# print 'model output shape: ', train_output.size(), ' | label shape: ', labels.size()
+			train_output = torch.nn.Softmax()(train_output)
+
+			print 'model output shape: ', train_output.size(), ' | label shape: ', labels.size()
+			print train_output
+
 
 			loss = criterion(train_output, labels)
 			train_loss += loss.data[0]
