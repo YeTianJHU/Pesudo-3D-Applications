@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 from PIL import Image
-import cv2
+# import cv2
 
 from p3d_model import transfer_model, P3D199, get_optim_policies
 
@@ -148,10 +148,11 @@ def main(options):
 
 	split = options.split
 
-	train_file = '/home/ye/Works/C3D-TCN-Keras/ucfTrainTestlist/trainlist0'+str(split)+'.txt'
-	test_file = '/home/ye/Works/C3D-TCN-Keras/ucfTrainTestlist/testlist0'+str(split)+'.txt'
-	data_folder = '/home/ye/Works/C3D-TCN-Keras/frames'
-	label_file = '/home/ye/Works/C3D-TCN-Keras/ucfTrainTestlist/classInd.txt'
+	train_file = '/home-4/ytian27@jhu.edu/scratch/yetian/C3D-TCN-Keras/ucfTrainTestlist/trainlist0'+str(split)+'.txt'
+	test_file = '/home-4/ytian27@jhu.edu/scratch/yetian/C3D-TCN-Keras/ucfTrainTestlist/testlist0'+str(split)+'.txt'
+	# data_folder = '/home/ye/Works/C3D-TCN-Keras/frames'
+	data_folder = '/home-4/ytian27@jhu.edu/scratch/yetian/C3D-TCN-Keras/frames'
+	label_file = '/home-4/ytian27@jhu.edu/scratch/yetian/C3D-TCN-Keras/ucfTrainTestlist/classInd.txt'
 
 	
 
@@ -210,8 +211,8 @@ def main(options):
 			train_output = model(vid_tensor)
 			train_output = torch.nn.Softmax()(train_output)
 
-			print 'model output shape: ', train_output.size(), ' | label shape: ', labels.size()
-			print train_output
+			# print 'model output shape: ', train_output.size(), ' | label shape: ', labels.size()
+			print (train_output.size())
 
 
 			loss = criterion(train_output, labels)
@@ -232,8 +233,8 @@ def main(options):
 
 
 if __name__ == "__main__":
-  ret = parser.parse_known_args()
-  options = ret[0]
-  if ret[1]:
-	logging.warning("unknown arguments: {0}".format(parser.parse_known_args()[1]))
-  main(options)
+ 	ret = parser.parse_known_args()
+	options = ret[0]
+	if ret[1]:
+		logging.warning("unknown arguments: {0}".format(parser.parse_known_args()[1]))
+	main(options)
