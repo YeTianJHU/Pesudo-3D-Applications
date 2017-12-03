@@ -16,7 +16,7 @@ import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import torchvision.utils
 
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import numpy as np
 import random
 from PIL import Image
@@ -148,10 +148,16 @@ def main(options):
 		data_folder = '/home/ye/Works/C3D-TCN-Keras/frames'
 		label_file = '/home/ye/Works/C3D-TCN-Keras/ucfTrainTestlist/classInd.txt'
 	elif machine == 'marcc':
-		train_file = '/home-4/ytian27@jhu.edu/scratch/yetian/C3D-TCN-Keras/ucfTrainTestlist/trainlist0'+str(split)+'.txt'
-		test_file = '/home-4/ytian27@jhu.edu/scratch/yetian/C3D-TCN-Keras/ucfTrainTestlist/testlist0'+str(split)+'.txt'
-		data_folder = '/home-4/ytian27@jhu.edu/scratch/yetian/C3D-TCN-Keras/frames'
-		label_file = '/home-4/ytian27@jhu.edu/scratch/yetian/C3D-TCN-Keras/ucfTrainTestlist/classInd.txt'
+		#train_file = '/home-4/ytian27@jhu.edu/scratch/yetian/C3D-TCN-Keras/ucfTrainTestlist/trainlist0'+str(split)+'.txt'
+		#test_file = '/home-4/ytian27@jhu.edu/scratch/yetian/C3D-TCN-Keras/ucfTrainTestlist/testlist0'+str(split)+'.txt'
+		#data_folder = '/home-4/ytian27@jhu.edu/scratch/yetian/C3D-TCN-Keras/frames'
+		#label_file = '/home-4/ytian27@jhu.edu/scratch/yetian/C3D-TCN-Keras/ucfTrainTestlist/classInd.txt'
+		
+		train_file = './ucfTrainTestlist/trainlist0'+str(split)+'.txt'
+		test_file = './ucfTrainTestlist/testlist0'+str(split)+'.txt'
+		data_folder = './frames'
+		label_file = './ucfTrainTestlist/classInd.txt'
+
 
 
 	
@@ -180,7 +186,7 @@ def main(options):
 
 	use_cuda = (len(options.gpuid) >= 1)
 	if options.gpuid:
-		cuda.set_device((int)options.gpuid)
+		cuda.set_device(int(options.gpuid[0]))
 	
 	# Initial the model
 	model = P3D199(pretrained=True,num_classes=400)
