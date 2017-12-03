@@ -44,7 +44,7 @@ parser.add_argument("--batch_size", default=10, type=int,
 					help="Batch size for training. (default=10)")
 parser.add_argument("--optimizer", default="Adam", choices=["SGD", "Adadelta", "Adam"],
 					help="Optimizer of choice for training. (default=Adam)")
-parser.add_argument("--gpuid", default=[], nargs='+', type=int,
+parser.add_argument("--gpuid", default=[], nargs='+', type=str,
 					help="ID of gpu device to use. Empty implies cpu usage.")
 parser.add_argument("--size", default=160, type=int,
 					help="size of images.")
@@ -180,7 +180,7 @@ def main(options):
 
 	use_cuda = (len(options.gpuid) >= 1)
 	if options.gpuid:
-		cuda.set_device(options.gpuid[0])
+		cuda.set_device((int)options.gpuid)
 	
 	# Initial the model
 	model = P3D199(pretrained=True,num_classes=400)
