@@ -139,20 +139,22 @@ def main(options):
 
 
 	machine =options.machine
+	split = options.split
 
 	# Path to the directories of features and labels
 	if machine == 'ye_home':
-		path = '/home/ye/Works/C3D-TCN-Keras'
+		train_file = '/home/ye/Works/C3D-TCN-Keras/ucfTrainTestlist/trainlist0'+str(split)+'.txt'
+		test_file = '/home/ye/Works/C3D-TCN-Keras/ucfTrainTestlist/testlist0'+str(split)+'.txt'
+		data_folder = '/home/ye/Works/C3D-TCN-Keras/frames'
+		label_file = '/home/ye/Works/C3D-TCN-Keras/ucfTrainTestlist/classInd.txt'
 	elif machine == 'marcc':
-		path = '/home-4/ytian27@jhu.edu/scratch/yetian'
+		train_file = '/home-4/ytian27@jhu.edu/scratch/yetian/C3D-TCN-Keras/ucfTrainTestlist/trainlist0'+str(split)+'.txt'
+		test_file = '/home-4/ytian27@jhu.edu/scratch/yetian/C3D-TCN-Keras/ucfTrainTestlist/testlist0'+str(split)+'.txt'
+		data_folder = '/home-4/ytian27@jhu.edu/scratch/yetian/C3D-TCN-Keras/frames'
+		label_file = '/home-4/ytian27@jhu.edu/scratch/yetian/C3D-TCN-Keras/ucfTrainTestlist/classInd.txt'
 
-	split = options.split
 
-	train_file = '/home-4/ytian27@jhu.edu/scratch/yetian/C3D-TCN-Keras/ucfTrainTestlist/trainlist0'+str(split)+'.txt'
-	test_file = '/home-4/ytian27@jhu.edu/scratch/yetian/C3D-TCN-Keras/ucfTrainTestlist/testlist0'+str(split)+'.txt'
-	# data_folder = '/home/ye/Works/C3D-TCN-Keras/frames'
-	data_folder = '/home-4/ytian27@jhu.edu/scratch/yetian/C3D-TCN-Keras/frames'
-	label_file = '/home-4/ytian27@jhu.edu/scratch/yetian/C3D-TCN-Keras/ucfTrainTestlist/classInd.txt'
+	
 
 	
 
@@ -200,7 +202,7 @@ def main(options):
 	for epoch_i in range(options.epochs):
 		logging.info("At {0}-th epoch.".format(epoch_i))
 		train_loss = 0.0
-		correct_prediction = 0.0
+		correct = 0.0
 		for it, train_data in enumerate(train_loader, 0):
 			vid_tensor, labels = train_data
 			if use_cuda:
@@ -209,31 +211,37 @@ def main(options):
 				vid_tensor, labels = Variable(vid_tensor), Variable(labels)
 
 			train_output = model(vid_tensor)
-			train_output = torch.nn.Softmax()(train_output)
+			train_output = torch.nn.LogSoftmax()(train_output)
 
 			# print 'model output shape: ', train_output.size(), ' | label shape: ', labels.size()
-			print (train_output.size())
-
+			# print (train_output.size())
 
 			loss = criterion(train_output, labels)
 			train_loss += loss.data[0]
 
-			# correct_prediction += (predict.view(-1) == labels.view(-1)).sum().float()
+			pred = train_output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
+			correct += pred.eq(labels.data.view_as(pred)).cpu().sum()
+
 			logging.info("loss at batch {0}: {1}".format(it, loss.data[0]))
 			# logging.debug("loss at batch {0}: {1}".format(it, loss.data[0]))
 			optimizer.zero_grad()
 			loss.backward()
 			optimizer.step()
-			
 
-	# 	train_avg_loss = train_loss / (len(dset_train) / options.batch_size)
-	# 	training_accuracy = (correct_prediction / len(dset_train)).data.cpu().numpy()[0]
-	# 	logging.info("Average training loss value per instance is {0} at the end of epoch {1}".format(train_avg_loss, epoch_i))
-	# 	logging.info("Training accuracy is {0} at the end of epoch {1}".format(training_accuracy, epoch_i))
+			if it % 50 == 0:
+				print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+					epoch_i, it * len(vid_tensor), len(train_loader.dataset),
+					100. * it / len(train_loader), loss.data[0]))
+
+			
+		train_avg_loss = train_loss / (len(dset_train) / options.batch_size)
+		training_accuracy = (correct / len(dset_train))
+		logging.info("Average training loss value per instance is {0} at the end of epoch {1}".format(train_avg_loss, epoch_i))
+		logging.info("Training accuracy is {0} at the end of epoch {1}".format(training_accuracy, epoch_i))
 
 
 if __name__ == "__main__":
- 	ret = parser.parse_known_args()
+	ret = parser.parse_known_args()
 	options = ret[0]
 	if ret[1]:
 		logging.warning("unknown arguments: {0}".format(parser.parse_known_args()[1]))
