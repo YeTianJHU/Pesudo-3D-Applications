@@ -52,6 +52,8 @@ parser.add_argument("--split", default=1, type=int,
 					help="the number of train-test split of ucf101")
 parser.add_argument("--machine", default='ye_home', type=str,
 					help="which machine to run the code. choice from ye_home and marcc")
+parser.add_argument("--resume", default=0, type=int,
+					help="get check point")
 
 class ucf101Dataset(Dataset):
 	def __init__(self, data_folder, split_file, label_file, transform, num_labels=101, num_frame=16, channel=3, size=160):
@@ -192,13 +194,19 @@ def main(options):
 	model = P3D199(pretrained=True,num_classes=400)
 	model = transfer_model(model,num_classes=101)
 
-
 	if use_cuda > 0:
 		model.cuda()
+
+	if options.resume:
+		logging.info("=> loading checkpoint checkpoint.tar")
+		checkpoint = torch.load('checkpoint.tar"')
+		model.load_state_dict(checkpoint['state_dict'])
 
 
 	# Binary cross-entropy loss
 	criterion = torch.nn.CrossEntropyLoss()
+
+	print (model.parameters())
 	# criterion = torch.nn.NLLLoss()
 	# optimizer = eval("torch.optim." + options.optimizer)(model.parameters())get_optim_policies(model=None,modality='RGB',enable_pbn=True)
 	# optimizer = eval("torch.optim." + options.optimizer)(get_optim_policies(model=model,modality='RGB',enable_pbn=True))
@@ -245,6 +253,45 @@ def main(options):
 		logging.info("Average training loss value per instance is {0} at the end of epoch {1}".format(train_avg_loss, epoch_i))
 		logging.info("Training accuracy is {0} at the end of epoch {1}".format(training_accuracy, epoch_i))
 
+		torch.save({
+            'state_dict': model.state_dict(),
+        }, 'checkpoint.tar' )
+
+	# test
+	test_loss = 0.0
+	correct = 0.0
+	for it, test_data in enumerate(test_loader, 0):
+		vid_tensor, labels = test_data
+		if use_cuda:
+			vid_tensor, labels = Variable(vid_tensor).cuda(),  Variable(labels).cuda()
+		else:
+			vid_tensor, labels = Variable(vid_tensor), Variable(labels)
+
+		test_output = model(vid_tensor)
+		test_output = torch.nn.Softmax()(test_output)
+
+		# print 'model output shape: ', test_output.size(), ' | label shape: ', labels.size()
+		# print (test_output.size())
+
+		loss = criterion(test_output, labels)
+		test_loss += loss.data[0]
+
+		pred = test_output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
+		correct += pred.eq(labels.data.view_as(pred)).cpu().sum()
+
+		# logging.info("loss at batch {0}: {1}".format(it, loss.data[0]))
+		# logging.debug("loss at batch {0}: {1}".format(it, loss.data[0]))
+
+		if it % 50 == 0:
+			logging.info('[{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+				it * len(vid_tensor), len(test_loader.dataset),
+				100. * it / len(test_loader), loss.data[0]))
+
+		
+	test_avg_loss = test_loss / (len(dset_test) / options.batch_size)
+	test_accuracy = (correct / len(dset_test))
+	logging.info("Average test loss value per instance is {0}".format(test_avg_loss))
+	logging.info("Accuracy is {0} ".format(test_accuracy))
 
 if __name__ == "__main__":
 	ret = parser.parse_known_args()
