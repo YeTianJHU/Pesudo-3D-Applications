@@ -40,7 +40,7 @@ parser.add_argument("--learning_rate", "-lr", default=1e-2, type=float,
 					help="Learning rate of the optimization. (default=0.1)")
 parser.add_argument("--estop", default=1e-2, type=float,
 					help="Early stopping criteria on the development set. (default=1e-2)")               
-parser.add_argument("--batch_size", default=10, type=int,
+parser.add_argument("--batch_size", default=64, type=int,
 					help="Batch size for training. (default=10)")
 parser.add_argument("--optimizer", default="Adam", choices=["SGD", "Adadelta", "Adam"],
 					help="Optimizer of choice for training. (default=Adam)")
@@ -201,8 +201,8 @@ def main(options):
 	criterion = torch.nn.CrossEntropyLoss()
 	# criterion = torch.nn.NLLLoss()
 	# optimizer = eval("torch.optim." + options.optimizer)(model.parameters())get_optim_policies(model=None,modality='RGB',enable_pbn=True)
-	optimizer = eval("torch.optim." + options.optimizer)(get_optim_policies(model=model,modality='RGB',enable_pbn=True))
-
+	# optimizer = eval("torch.optim." + options.optimizer)(get_optim_policies(model=model,modality='RGB',enable_pbn=True))
+	optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 	# main training loop
 	last_dev_avg_loss = float("inf")
 	for epoch_i in range(options.epochs):
@@ -217,7 +217,7 @@ def main(options):
 				vid_tensor, labels = Variable(vid_tensor), Variable(labels)
 
 			train_output = model(vid_tensor)
-			train_output = torch.nn.LogSoftmax()(train_output)
+			train_output = torch.nn.Softmax()(train_output)
 
 			# print 'model output shape: ', train_output.size(), ' | label shape: ', labels.size()
 			# print (train_output.size())
@@ -228,14 +228,14 @@ def main(options):
 			pred = train_output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
 			correct += pred.eq(labels.data.view_as(pred)).cpu().sum()
 
-			logging.info("loss at batch {0}: {1}".format(it, loss.data[0]))
+			# logging.info("loss at batch {0}: {1}".format(it, loss.data[0]))
 			# logging.debug("loss at batch {0}: {1}".format(it, loss.data[0]))
 			optimizer.zero_grad()
 			loss.backward()
 			optimizer.step()
 
 			if it % 50 == 0:
-				print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+				logging('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
 					epoch_i, it * len(vid_tensor), len(train_loader.dataset),
 					100. * it / len(train_loader), loss.data[0]))
 
