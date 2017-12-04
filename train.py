@@ -30,16 +30,16 @@ logging.basicConfig(
 
 parser = argparse.ArgumentParser(description="Pesudo 3D on UCF101 Dataset")
 
-parser.add_argument("--load", 
-					help="Load saved network weights. (default = best_weights)")
-parser.add_argument("--save", 
-					help="Save network weights. (default = cnn_weight)")  
+parser.add_argument("--load", default=0, type=int,
+					help="Load saved network weights. 0 represent don't load; other number represent the model number")
+parser.add_argument("--save", default=0, type=int,
+					help="Save network weights. 0 represent don't save; number represent model number")  
 parser.add_argument("--epochs", default=60, type=int,
-					help="Epochs through the data. (default=20)")  
-parser.add_argument("--learning_rate", "-lr", default=1e-2, type=float,
+					help="Epochs through the data. (default=60)")  
+parser.add_argument("--learning_rate", "-lr", default=0.001, type=float,
 					help="Learning rate of the optimization. (default=0.1)")
-parser.add_argument("--estop", default=1e-2, type=float,
-					help="Early stopping criteria on the development set. (default=1e-2)")               
+# parser.add_argument("--estop", default=1e-2, type=float,
+# 					help="Early stopping criteria on the development set. (default=1e-2)")               
 parser.add_argument("--batch_size", default=16, type=int,
 					help="Batch size for training. (default=10)")
 parser.add_argument("--optimizer", default="Adam", choices=["SGD", "Adadelta", "Adam"],
@@ -52,8 +52,6 @@ parser.add_argument("--split", default=1, type=int,
 					help="the number of train-test split of ucf101")
 parser.add_argument("--machine", default='ye_home', type=str,
 					help="which machine to run the code. choice from ye_home and marcc")
-parser.add_argument("--resume", default=0, type=int,
-					help="get check point")
 parser.add_argument("--only_last_layer", default=0, type=int,
 					help="whether choose to freezen the parameters for all the layers except the linear layer on the pre-trained model")
 
@@ -199,9 +197,9 @@ def main(options):
 	if use_cuda > 0:
 		model.cuda()
 
-	if options.resume:
-		logging.info("=> loading checkpoint checkpoint.tar")
-		checkpoint = torch.load('checkpoint.tar"')
+	if options.load:
+		logging.info("=> loading checkpoint"+str(options.load)+".tar")
+		checkpoint = torch.load('checkpoint'+str(options.load)+'.tar')
 		model.load_state_dict(checkpoint['state_dict'])
 
 
@@ -214,9 +212,9 @@ def main(options):
 	# optimizer = eval("torch.optim." + options.optimizer)(get_optim_policies(model=model,modality='RGB',enable_pbn=True))
 
 	if options.only_last_layer:
-		optimizer = torch.optim.SGD(model.fc.parameters(), lr=0.001, momentum=0.9)
+		optimizer = torch.optim.SGD(model.fc.parameters(), lr=options.learning_rate, momentum=0.9)
 	else:
-		optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+		optimizer = torch.optim.SGD(model.parameters(), lr=options.learning_rate, momentum=0.9)
 
 	# main training loop
 	last_dev_avg_loss = float("inf")
@@ -260,9 +258,10 @@ def main(options):
 		logging.info("Average training loss value per instance is {0} at the end of epoch {1}".format(train_avg_loss, epoch_i))
 		logging.info("Training accuracy is {0} at the end of epoch {1}".format(training_accuracy, epoch_i))
 
-		torch.save({
-            'state_dict': model.state_dict(),
-        }, 'checkpoint.tar' )
+		if options.save:
+			torch.save({
+				'state_dict': model.state_dict(),
+				}, 'checkpoint+'str(options.save)+'.tar' )
 
 	# test
 	test_loss = 0.0
