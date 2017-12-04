@@ -128,7 +128,7 @@ class ucf101Dataset(Dataset):
 		label_dict = {}
 		num_lab = 101
 		for i in range(num_lab):
-			label_dict[label_list[i][1]] = label_list[i][0] 
+			label_dict[label_list[i][1].astype(str)] = label_list[i][0] 
 		return label_dict
 
 
@@ -185,8 +185,8 @@ def main(options):
 							 )
 
 	use_cuda = (len(options.gpuid) >= 1)
-	if options.gpuid:
-		cuda.set_device(int(options.gpuid[0]))
+	#if options.gpuid:
+		#cuda.set_device(int(options.gpuid[0]))
 	
 	# Initial the model
 	model = P3D199(pretrained=True,num_classes=400)

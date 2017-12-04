@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 from PIL import Image
-import cv2
+
 
 def read_split_file(dir):
     res = []
@@ -37,7 +37,7 @@ def get_video_tensor(dir):
 		# img = self.transform(img)
 		img = transformations(img)
 		flow[:,i,:,:] = img
-	print flow.size()
+	print (flow.size())
 
 transformations = transforms.Compose([transforms.Scale((160,160)),
 								transforms.ToTensor()
@@ -65,8 +65,8 @@ def trans_label(txt):
 	# num_lab = len(label_list)
 	num_lab = 101
 	for i in range(num_lab):
-		# print label_list[i][1], label_list[i][0]
-		label_dict[label_list[i][1]] = label_list[i][0]
+		print (label_list[i][1].astype(str), label_list[i][0])
+		label_dict[label_list[i][1].astype(str)] = label_list[i][0]
 	# print label_dict['HandStandPushups']
 	return label_dict
 
@@ -77,6 +77,7 @@ def trans_label(txt):
 # dir = os.path.join('/home/ye/Works/C3D-TCN-Keras/frames/v_ApplyEyeMakeup_g01_c02')
 # get_video_tensor(dir)
 
-label_dict = trans_label('/media/ye/youtube-8/ucfTrainTestlist/classInd.txt')
+label_dict = trans_label('./ucfTrainTestlist/classInd.txt')
+print (label_dict)
 label = label_dict['Swing']
-print label
+print(label)
