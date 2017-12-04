@@ -54,7 +54,8 @@ parser.add_argument("--machine", default='ye_home', type=str,
 					help="which machine to run the code. choice from ye_home and marcc")
 parser.add_argument("--only_last_layer", default=0, type=int,
 					help="whether choose to freezen the parameters for all the layers except the linear layer on the pre-trained model")
-
+parser.add_argument("--normalize",
+					help="do the normalize for the images")
 class ucf101Dataset(Dataset):
 	def __init__(self, data_folder, split_file, label_file, transform, num_labels=101, num_frame=16, channel=3, size=160):
 
@@ -160,11 +161,15 @@ def main(options):
 		data_folder = './frames'
 		label_file = './ucfTrainTestlist/classInd.txt'
 
-
-	transformations = transforms.Compose([transforms.Scale((options.size,options.size)),
-									transforms.ToTensor(),
-									transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-									])
+	if options.normalize:
+		transformations = transforms.Compose([transforms.Scale((options.size,options.size)),
+										transforms.ToTensor(),
+										transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+										])
+	else:
+		transformations = transforms.Compose([transforms.Scale((options.size,options.size)),
+										transforms.ToTensor()
+										])	
 	
 	dset_train = ucf101Dataset(data_folder, train_file, label_file, transformations, size=options.size)
 
