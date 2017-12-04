@@ -54,7 +54,7 @@ parser.add_argument("--machine", default='ye_home', type=str,
 					help="which machine to run the code. choice from ye_home and marcc")
 parser.add_argument("--only_last_layer", default=0, type=int,
 					help="whether choose to freezen the parameters for all the layers except the linear layer on the pre-trained model")
-parser.add_argument("--normalize",
+parser.add_argument("--normalize", default=1, type=int,
 					help="do the normalize for the images")
 class ucf101Dataset(Dataset):
 	def __init__(self, data_folder, split_file, label_file, transform, num_labels=101, num_frame=16, channel=3, size=160):
