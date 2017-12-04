@@ -34,13 +34,13 @@ parser.add_argument("--load",
 					help="Load saved network weights. (default = best_weights)")
 parser.add_argument("--save", 
 					help="Save network weights. (default = cnn_weight)")  
-parser.add_argument("--epochs", default=20, type=int,
+parser.add_argument("--epochs", default=60, type=int,
 					help="Epochs through the data. (default=20)")  
 parser.add_argument("--learning_rate", "-lr", default=1e-2, type=float,
 					help="Learning rate of the optimization. (default=0.1)")
 parser.add_argument("--estop", default=1e-2, type=float,
 					help="Early stopping criteria on the development set. (default=1e-2)")               
-parser.add_argument("--batch_size", default=64, type=int,
+parser.add_argument("--batch_size", default=16, type=int,
 					help="Batch size for training. (default=10)")
 parser.add_argument("--optimizer", default="Adam", choices=["SGD", "Adadelta", "Adam"],
 					help="Optimizer of choice for training. (default=Adam)")
@@ -235,7 +235,7 @@ def main(options):
 			optimizer.step()
 
 			if it % 50 == 0:
-				logging('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+				logging.info('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
 					epoch_i, it * len(vid_tensor), len(train_loader.dataset),
 					100. * it / len(train_loader), loss.data[0]))
 
