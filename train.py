@@ -266,7 +266,7 @@ def main(options):
 		if options.save:
 			torch.save({
 				'state_dict': model.state_dict(),
-				}, 'checkpoint+'str(options.save)+'.tar' )
+				}, 'checkpoint'+str(options.save)+'.tar' )
 
 	# test
 	test_loss = 0.0
