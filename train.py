@@ -54,6 +54,8 @@ parser.add_argument("--machine", default='ye_home', type=str,
 					help="which machine to run the code. choice from ye_home and marcc")
 parser.add_argument("--resume", default=0, type=int,
 					help="get check point")
+parser.add_argument("--only_last_layer", default=0, type=int,
+					help="whether choose to freezen the parameters for all the layers except the linear layer on the pre-trained model")
 
 class ucf101Dataset(Dataset):
 	def __init__(self, data_folder, split_file, label_file, transform, num_labels=101, num_frame=16, channel=3, size=160):
@@ -161,11 +163,6 @@ def main(options):
 		label_file = './ucfTrainTestlist/classInd.txt'
 
 
-
-	
-
-	
-
 	transformations = transforms.Compose([transforms.Scale((options.size,options.size)),
 									transforms.ToTensor(),
 									transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
@@ -192,6 +189,11 @@ def main(options):
 	
 	# Initial the model
 	model = P3D199(pretrained=True,num_classes=400)
+
+	if options.only_last_layer:
+		for param in model.parameters():
+			param.requires_grad = False
+
 	model = transfer_model(model,num_classes=101)
 
 	if use_cuda > 0:
@@ -210,7 +212,12 @@ def main(options):
 	# criterion = torch.nn.NLLLoss()
 	# optimizer = eval("torch.optim." + options.optimizer)(model.parameters())get_optim_policies(model=None,modality='RGB',enable_pbn=True)
 	# optimizer = eval("torch.optim." + options.optimizer)(get_optim_policies(model=model,modality='RGB',enable_pbn=True))
-	optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+
+	if options.only_last_layer:
+		optimizer = torch.optim.SGD(model.fc.parameters(), lr=0.001, momentum=0.9)
+	else:
+		optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+
 	# main training loop
 	last_dev_avg_loss = float("inf")
 	for epoch_i in range(options.epochs):
