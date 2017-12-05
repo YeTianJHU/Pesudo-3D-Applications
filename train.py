@@ -21,6 +21,7 @@ import numpy as np
 import random
 from PIL import Image
 # import cv2
+from torchvision.transforms import ToPILImage
 
 from p3d_model import transfer_model, P3D199, get_optim_policies
 
@@ -56,6 +57,8 @@ parser.add_argument("--only_last_layer", default=0, type=int,
 					help="whether choose to freezen the parameters for all the layers except the linear layer on the pre-trained model")
 parser.add_argument("--normalize", default=1, type=int,
 					help="do the normalize for the images")
+
+
 class ucf101Dataset(Dataset):
 	def __init__(self, data_folder, split_file, label_file, transform, num_labels=101, num_frame=16, channel=3, size=160):
 
@@ -118,10 +121,10 @@ class ucf101Dataset(Dataset):
 	def get_video_tensor(self, dir, num_frame, channel, size):
 		images = self.collect_files(dir)
 		flow = torch.FloatTensor(channel,num_frame,size,size)
+		seed = np.random.random_integers(0,len(images)-num_frame) #random sampling
 		for i in range(num_frame):
-			img = Image.open(images[i])
+			img = Image.open(images[i+seed])
 			img = img.convert('RGB')
-			# img = self.transform(img)
 			img = self.transform(img)
 			flow[:,i,:,:] = img
 		return flow
@@ -133,7 +136,6 @@ class ucf101Dataset(Dataset):
 		for i in range(num_lab):
 			label_dict[label_list[i][1].astype(str)] = label_list[i][0] 
 		return label_dict
-
 
 
 
@@ -218,7 +220,7 @@ def main(options):
 	if options.only_last_layer:
 		optimizer = eval("torch.optim." + options.optimizer)(model.fc.parameters(), get_optim_policies(model=model,modality='RGB',enable_pbn=True))
 	else:
-		optimizer = eval("torch.optim." + options.optimizer)(model.parameters(), lr=options.learning_rate, momentum=0.9)
+		optimizer = eval("torch.optim." + options.optimizer)(model.parameters(), lr=options.learning_rate)
 
 	# main training loop
 	last_dev_avg_loss = float("inf")
@@ -228,6 +230,12 @@ def main(options):
 		correct = 0.0
 		for it, train_data in enumerate(train_loader, 0):
 			vid_tensor, labels = train_data
+
+			
+			to_pil_image = ToPILImage()
+			img = to_pil_image(vid_tensor[0,:,7,:,:])
+			img.show()
+
 			if use_cuda:
 				vid_tensor, labels = Variable(vid_tensor).cuda(),  Variable(labels).cuda()
 			else:

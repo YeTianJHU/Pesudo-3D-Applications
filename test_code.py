@@ -19,6 +19,7 @@ import numpy as np
 import random
 from PIL import Image
 
+from torchvision.transforms import ToPILImage
 
 def read_split_file(dir):
     res = []
@@ -31,13 +32,19 @@ def read_split_file(dir):
 def get_video_tensor(dir):
 	images = collect_files(dir)
 	flow = torch.FloatTensor(3,16,160,160)
+	seed = np.random.random_integers(0,len(images)-16) #random sampling
+	print seed, len(images)
 	for i in range(16):
-		img = Image.open(images[i])
+		img = Image.open(images[i+seed])
 		img = img.convert('RGB')
 		# img = self.transform(img)
 		img = transformations(img)
 		flow[:,i,:,:] = img
-	print (flow.size())
+
+	to_pil_image = ToPILImage()
+	img = to_pil_image(flow[:,7,:,:])
+	img.show()
+
 
 transformations = transforms.Compose([transforms.Scale((160,160)),
 								transforms.ToTensor()
@@ -74,10 +81,10 @@ def trans_label(txt):
 # res = read_split_file(file)
 # print res[0][1][:-6]
 
-# dir = os.path.join('/home/ye/Works/C3D-TCN-Keras/frames/v_ApplyEyeMakeup_g01_c02')
-# get_video_tensor(dir)
+dir = os.path.join('/home/ye/Works/C3D-TCN-Keras/frames/v_ApplyEyeMakeup_g01_c02')
+get_video_tensor(dir)
 
-label_dict = trans_label('./ucfTrainTestlist/classInd.txt')
-print (label_dict)
-label = label_dict['Swing']
-print(label)
+# label_dict = trans_label('./ucfTrainTestlist/classInd.txt')
+# print (label_dict)
+# label = label_dict['Swing']
+# print(label)
