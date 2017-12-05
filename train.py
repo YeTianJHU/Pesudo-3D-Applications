@@ -215,9 +215,12 @@ def main(options):
 	if use_cuda > 0:
 		model.cuda()
 
+	start_epoch = 0
+
 	if options.load:
 		logging.info("=> loading checkpoint"+str(options.load)+".tar")
 		checkpoint = torch.load('checkpoint'+str(options.load)+'.tar')
+		start_epoch = checkpoint['epoch']
 		model.load_state_dict(checkpoint['state_dict'])
 
 
@@ -246,7 +249,7 @@ def main(options):
 
 	# main training loop
 	# last_dev_avg_loss = float("inf")
-	for epoch_i in range(options.epochs):
+	for epoch_i in range(start_epoch, options.epochs):
 		logging.info("At {0}-th epoch.".format(epoch_i))
 		
 		if len(options.lr_steps)>0 and options.use_policy and options.optimizer=="SGD":
@@ -299,7 +302,9 @@ def main(options):
 
 		if options.save:
 			torch.save({
+				'epoch': epoch_i + 1,
 				'state_dict': model.state_dict(),
+				'optimizer' : optimizer.state_dict(),
 				}, 'checkpoint'+str(options.save)+'.tar' )
 
 
