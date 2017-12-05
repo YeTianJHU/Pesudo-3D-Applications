@@ -59,6 +59,8 @@ parser.add_argument("--lr_steps", default=[20,40], type=int, nargs="+",
 					help="steps to decay learning rate")
 parser.add_argument("--use_policy", default=0, type=int,
 					help="policy for getting decay of learning rate")
+parser.add_argument("--use_trained_model", default=1, type=int,
+					help="whether use the pre-trained model on kinetics or not")
 
 
 
@@ -204,7 +206,10 @@ def main(options):
 		#cuda.set_device(int(options.gpuid[0]))
 	
 	# Initial the model
-	model = P3D199(pretrained=True,num_classes=400)
+	if options.use_trained_model:
+		model = P3D199(pretrained=True,num_classes=400)
+	else:
+		model = P3D199(pretrained=False,num_classes=400)
 
 	if options.only_last_layer:
 		for param in model.parameters():
