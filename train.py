@@ -22,7 +22,7 @@ import random
 from PIL import Image
 # import cv2
 from torchvision.transforms import ToPILImage
-
+from torch.optim.lr_scheduler import StepLR
 from p3d_model import transfer_model, P3D199, get_optim_policies
 
 logging.basicConfig(
@@ -38,12 +38,10 @@ parser.add_argument("--save", default=0, type=int,
 parser.add_argument("--epochs", default=60, type=int,
 					help="Epochs through the data. (default=60)")  
 parser.add_argument("--learning_rate", "-lr", default=0.001, type=float,
-					help="Learning rate of the optimization. (default=0.1)")
-# parser.add_argument("--estop", default=1e-2, type=float,
-# 					help="Early stopping criteria on the development set. (default=1e-2)")               
-parser.add_argument("--batch_size", default=16, type=int,
-					help="Batch size for training. (default=10)")
-parser.add_argument("--optimizer", default="Adam", choices=["SGD", "Adadelta", "Adam"],
+					help="Learning rate of the optimization. (default=0.1)")              
+parser.add_argument("--batch_size", default=10, type=int,
+					help="Batch size for training. (default=16)")
+parser.add_argument("--optimizer", default="SGD", choices=["SGD", "Adadelta", "Adam"],
 					help="Optimizer of choice for training. (default=Adam)")
 parser.add_argument("--gpuid", default=[], nargs='+', type=str,
 					help="ID of gpu device to use. Empty implies cpu usage.")
@@ -57,6 +55,11 @@ parser.add_argument("--only_last_layer", default=0, type=int,
 					help="whether choose to freezen the parameters for all the layers except the linear layer on the pre-trained model")
 parser.add_argument("--normalize", default=1, type=int,
 					help="do the normalize for the images")
+parser.add_argument("--lr_steps", default=[20,40], type=int, nargs="+",
+					help="steps to decay learning rate")
+parser.add_argument("--use_policy", default=0, type=int,
+					help="policy for getting decay of learning rate")
+
 
 
 class ucf101Dataset(Dataset):
@@ -138,6 +141,14 @@ class ucf101Dataset(Dataset):
 		return label_dict
 
 
+def adjust_learning_rate(optimizer, epoch, lr_steps):
+	"""Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
+	decay = 0.1 ** (sum(epoch >= np.array(lr_steps)))
+	lr = options.learning_rate * decay
+	for param_group in optimizer.param_groups:
+		param_group['lr'] = lr * param_group['lr_mult']
+		param_group['weight_decay'] = decay * param_group['decay_mult']
+
 
 def main(options):
 	# Path configuration
@@ -213,28 +224,44 @@ def main(options):
 	# Binary cross-entropy loss
 	criterion = torch.nn.CrossEntropyLoss()
 
-	# criterion = torch.nn.NLLLoss()
-	# optimizer = eval("torch.optim." + options.optimizer)(model.parameters())get_optim_policies(model=None,modality='RGB',enable_pbn=True)
-	# optimizer = eval("torch.optim." + options.optimizer)(get_optim_policies(model=model,modality='RGB',enable_pbn=True))
-
 	if options.only_last_layer:
-		optimizer = eval("torch.optim." + options.optimizer)(model.fc.parameters(), get_optim_policies(model=model,modality='RGB',enable_pbn=True))
+		optimizer = eval("torch.optim." + options.optimizer)(model.fc.parameters(), lr=options.learning_rate)
 	else:
-		optimizer = eval("torch.optim." + options.optimizer)(model.parameters(), lr=options.learning_rate)
+		if options.optimizer=="SGD":
+			if options.use_policy:
+				policies = get_optim_policies(model=model,modality='RGB',enable_pbn=True)
+				optimizer = torch.optim.SGD(policies,
+											options.learning_rate,
+											momentum=0.9,
+											weight_decay=5e-4)
+			else:
+				optimizer = torch.optim.SGD(model.parameters(),
+							options.learning_rate,
+							momentum=0.9,
+							weight_decay=5e-4)
+		else:
+			optimizer = eval("torch.optim." + options.optimizer)(model.parameters(), lr=options.learning_rate)
+
+	scheduler = StepLR(optimizer, step_size=options.lr_steps[0], gamma=0.1)
 
 	# main training loop
-	last_dev_avg_loss = float("inf")
+	# last_dev_avg_loss = float("inf")
 	for epoch_i in range(options.epochs):
 		logging.info("At {0}-th epoch.".format(epoch_i))
+		
+		if len(options.lr_steps)>0 and options.use_policy and options.optimizer=="SGD":
+				adjust_learning_rate(optimizer, epoch_i, options.lr_steps)
+		else:
+			scheduler.step()
+
 		train_loss = 0.0
 		correct = 0.0
 		for it, train_data in enumerate(train_loader, 0):
 			vid_tensor, labels = train_data
-
-			
-			to_pil_image = ToPILImage()
-			img = to_pil_image(vid_tensor[0,:,7,:,:])
-			img.show()
+		
+			# to_pil_image = ToPILImage()
+			# img = to_pil_image(vid_tensor[0,:,7,:,:])
+			# img.show()
 
 			if use_cuda:
 				vid_tensor, labels = Variable(vid_tensor).cuda(),  Variable(labels).cuda()
@@ -275,7 +302,9 @@ def main(options):
 				'state_dict': model.state_dict(),
 				}, 'checkpoint'+str(options.save)+'.tar' )
 
-	# test
+
+	# main test loop
+	model.eval()
 	test_loss = 0.0
 	correct = 0.0
 	for it, test_data in enumerate(test_loader, 0):
