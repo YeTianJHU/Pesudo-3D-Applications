@@ -211,15 +211,14 @@ def main(options):
 	# Binary cross-entropy loss
 	criterion = torch.nn.CrossEntropyLoss()
 
-	print (model.parameters())
 	# criterion = torch.nn.NLLLoss()
 	# optimizer = eval("torch.optim." + options.optimizer)(model.parameters())get_optim_policies(model=None,modality='RGB',enable_pbn=True)
 	# optimizer = eval("torch.optim." + options.optimizer)(get_optim_policies(model=model,modality='RGB',enable_pbn=True))
 
 	if options.only_last_layer:
-		optimizer = torch.optim.SGD(model.fc.parameters(), lr=options.learning_rate, momentum=0.9)
+		optimizer = eval("torch.optim." + options.optimizer)(model.fc.parameters(), get_optim_policies(model=model,modality='RGB',enable_pbn=True))
 	else:
-		optimizer = torch.optim.SGD(model.parameters(), lr=options.learning_rate, momentum=0.9)
+		optimizer = eval("torch.optim." + options.optimizer)(model.parameters(), lr=options.learning_rate, momentum=0.9)
 
 	# main training loop
 	last_dev_avg_loss = float("inf")
