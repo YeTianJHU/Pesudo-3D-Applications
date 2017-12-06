@@ -24,7 +24,7 @@ from PIL import Image
 from torchvision.transforms import ToPILImage
 from torch.optim.lr_scheduler import StepLR
 from p3d_model import transfer_model, P3D199, C3D, get_optim_policies
-from visualize import make_dot
+#from visualize import make_dot
 
 
 logging.basicConfig(

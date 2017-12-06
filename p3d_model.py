@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 import math
 from functools import partial
-from visualize import make_dot
+#from visualize import make_dot
 
 
 __all__ = ['P3D', 'P3D63', 'P3D131','P3D199']
