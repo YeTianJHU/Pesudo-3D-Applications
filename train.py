@@ -23,7 +23,9 @@ from PIL import Image
 # import cv2
 from torchvision.transforms import ToPILImage
 from torch.optim.lr_scheduler import StepLR
-from p3d_model import transfer_model, P3D199, get_optim_policies
+from p3d_model import transfer_model, P3D199, C3D, get_optim_policies
+from visualize import make_dot
+
 
 logging.basicConfig(
 	format='%(asctime)s %(levelname)s: %(message)s',
@@ -61,6 +63,8 @@ parser.add_argument("--use_policy", default=0, type=int,
 					help="policy for getting decay of learning rate")
 parser.add_argument("--use_trained_model", default=1, type=int,
 					help="whether use the pre-trained model on kinetics or not")
+parser.add_argument("--model", default="P3D",  choices=["P3D", "C3D"],
+					help="which machine to run the code. choice from ye_home and marcc")
 
 
 
@@ -176,6 +180,9 @@ def main(options):
 		data_folder = './frames'
 		label_file = './ucfTrainTestlist/classInd.txt'
 
+	if options.model=="C3D":
+		options.size = 112
+		
 	if options.normalize:
 		transformations = transforms.Compose([transforms.Scale((options.size,options.size)),
 										transforms.ToTensor(),
@@ -206,16 +213,26 @@ def main(options):
 		#cuda.set_device(int(options.gpuid[0]))
 	
 	# Initial the model
-	if options.use_trained_model:
-		model = P3D199(pretrained=True,num_classes=400)
+	if options.model=="P3D":
+		if options.use_trained_model:
+			model = P3D199(pretrained=True,num_classes=400)
+		else:
+			model = P3D199(pretrained=False,num_classes=400)
+	elif options.model=="C3D":
+		if options.use_trained_model:
+			model = C3D()
+			model.load_state_dict(torch.load('c3d.pickle'))
+		else:
+			model = C3D()
 	else:
-		model = P3D199(pretrained=False,num_classes=400)
+		logging.error("No such model: {0}".format(options.model))
+
 
 	if options.only_last_layer:
 		for param in model.parameters():
 			param.requires_grad = False
 
-	model = transfer_model(model,num_classes=101)
+	model = transfer_model(model,num_classes=101, model_type=options.model)
 
 	if use_cuda > 0:
 		model.cuda()
@@ -278,6 +295,10 @@ def main(options):
 
 			train_output = model(vid_tensor)
 			train_output = torch.nn.Softmax()(train_output)
+
+			# print ('vis here!')
+			# vis = make_dot(train_output)
+			# vis.view()
 
 			# print 'model output shape: ', train_output.size(), ' | label shape: ', labels.size()
 			# print (train_output.size())
