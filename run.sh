@@ -1,13 +1,13 @@
 #!/bin/bash -l
 
 #SBATCH
-#SBATCH --job-name=ucf
+#SBATCH --job-name=8
 #SBATCH --time=4-00:00:00
 #SBATCH --partition=gpu
-#SBATCH --gres=gpu:2
-#SBATCH --nodes=2
-#SBATCH --ntasks-per-node=2
-#SBATCH --cpus-per-task=6
+#SBATCH --gres=gpu:1
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=2
 #SBATCH --mail-type=end
 #SBATCH --mail-user=ytian27@jhu.edu
 
@@ -24,5 +24,5 @@ echo $CUDA_VISIBLE_DEVICES
 # redefine SINGULARITY_HOME to mount current working directory to base $HOME
 export SINGULARITY_HOME=$PWD:/home/$USER 
 
-singularity exec --nv /scratch/groups/singularity_images/pytorch.simg python train.py --machine=ye_home --gpu=$CUDA_VISIBLE_DEVICES > output.log
+singularity exec --nv /scratch/groups/singularity_images/pytorch.simg python train.py --machine=marcc --gpuid=$CUDA_VISIBLE_DEVICES --lr_steps 30 60 --save=8
 echo "Finished with job $SLURM_JOBID"
