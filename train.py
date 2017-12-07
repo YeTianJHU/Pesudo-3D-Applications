@@ -40,7 +40,7 @@ parser.add_argument("--save", default=0, type=int,
 parser.add_argument("--epochs", default=60, type=int,
 					help="Epochs through the data. (default=60)")  
 parser.add_argument("--learning_rate", "-lr", default=0.001, type=float,
-					help="Learning rate of the optimization. (default=0.1)")              
+					help="Learning rate of the optimization. (default=0.001)")              
 parser.add_argument("--batch_size", default=10, type=int,
 					help="Batch size for training. (default=16)")
 parser.add_argument("--optimizer", default="SGD", choices=["SGD", "Adadelta", "Adam"],
@@ -170,11 +170,6 @@ def main(options):
 		data_folder = '/home/ye/Works/C3D-TCN-Keras/frames'
 		label_file = '/home/ye/Works/C3D-TCN-Keras/ucfTrainTestlist/classInd.txt'
 	elif machine == 'marcc':
-		#train_file = '/home-4/ytian27@jhu.edu/scratch/yetian/C3D-TCN-Keras/ucfTrainTestlist/trainlist0'+str(split)+'.txt'
-		#test_file = '/home-4/ytian27@jhu.edu/scratch/yetian/C3D-TCN-Keras/ucfTrainTestlist/testlist0'+str(split)+'.txt'
-		#data_folder = '/home-4/ytian27@jhu.edu/scratch/yetian/C3D-TCN-Keras/frames'
-		#label_file = '/home-4/ytian27@jhu.edu/scratch/yetian/C3D-TCN-Keras/ucfTrainTestlist/classInd.txt'
-		
 		train_file = './ucfTrainTestlist/trainlist0'+str(split)+'.txt'
 		test_file = './ucfTrainTestlist/testlist0'+str(split)+'.txt'
 		data_folder = './frames'
