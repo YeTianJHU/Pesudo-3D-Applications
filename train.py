@@ -37,7 +37,7 @@ parser.add_argument("--load", default=0, type=int,
 					help="Load saved network weights. 0 represent don't load; other number represent the model number")
 parser.add_argument("--save", default=0, type=int,
 					help="Save network weights. 0 represent don't save; number represent model number")  
-parser.add_argument("--epochs", default=60, type=int,
+parser.add_argument("--epochs", default=90, type=int,
 					help="Epochs through the data. (default=60)")  
 parser.add_argument("--learning_rate", "-lr", default=0.001, type=float,
 					help="Learning rate of the optimization. (default=0.001)")              
@@ -57,7 +57,7 @@ parser.add_argument("--only_last_layer", default=0, type=int,
 					help="whether choose to freezen the parameters for all the layers except the linear layer on the pre-trained model")
 parser.add_argument("--normalize", default=1, type=int,
 					help="do the normalize for the images")
-parser.add_argument("--lr_steps", default=[20,40], type=int, nargs="+",
+parser.add_argument("--lr_steps", default=[30,60], type=int, nargs="+",
 					help="steps to decay learning rate")
 parser.add_argument("--use_policy", default=0, type=int,
 					help="policy for getting decay of learning rate")
