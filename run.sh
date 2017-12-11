@@ -25,4 +25,9 @@ echo $CUDA_VISIBLE_DEVICES
 export SINGULARITY_HOME=$PWD:/home/$USER 
 
 singularity exec --nv /scratch/groups/singularity_images/pytorch.simg python train.py --machine=marcc --gpuid=$CUDA_VISIBLE_DEVICES --lr_steps 30 60 --save=8
+
+# In the case of RuntimeError: cuda runtime error (48) : no kernel image is available for execution on the device at /tmp/pip-ds_7ifa8-build/aten/src/THCUNN/generic/Threshold.cu:34
+# singularity pull --name pytorch.simg shub://marcc-hpc/pytorch
+# singularity exec --nv ./pytorch.simg python train.py --machine=marcc --gpuid=$CUDA_VISIBLE_DEVICES --lr_steps 30 60 --save=8
+
 echo "Finished with job $SLURM_JOBID"
