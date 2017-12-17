@@ -140,7 +140,7 @@ def main(options):
 	elif options.model=="C3D":
 		if options.use_trained_model:
 			model = C3D()
-			model.load_state_dict(torch.load('./c3d.pickle'))
+			model.load_state_dict(torch.load('c3d.pickle'))
 		else:
 			model = C3D()
 	else:
@@ -265,7 +265,7 @@ def main(options):
 			vid_tensor, labels = Variable(vid_tensor), Variable(labels)
 
 		test_output = model(vid_tensor)
-		test_output = torch.nn.Softmax()(test_output)
+		test_output = torch.nn.Softmax(dim=1)(test_output)
 
 		# print 'model output shape: ', test_output.size(), ' | label shape: ', labels.size()
 		# print (test_output.size())
