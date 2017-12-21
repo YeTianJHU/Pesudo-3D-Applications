@@ -453,10 +453,10 @@ def get_optim_policies(model=None,modality='RGB',enable_pbn=True):
 #     	return output
 
 def transfer_model(model,num_classes,model_type):
-	if model_type==P3D:
+	if model_type=="P3D":
 		num_ftrs=model.fc.in_features
 		model.fc=nn.Linear(num_ftrs,num_classes)
-	elif model_type==C3D:
+	elif model_type=="C3D":
 		model.fc8=nn.Linear(4096, num_classes)
 	return model
 
