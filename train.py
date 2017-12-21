@@ -152,6 +152,7 @@ def main(options):
 			param.requires_grad = False
 
 	model = transfer_model(model,num_classes=101, model_type=options.model)
+	logging.info("fc size is: {0}".format(model.fc))
 
 	if use_cuda > 0:
 		model.cuda()
