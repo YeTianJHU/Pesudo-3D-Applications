@@ -155,7 +155,6 @@ class kineticsDataset(Dataset):
 			flag, bgr_im = vidcap.read()
 			if not flag:
 				break
-			print bgr_im.shape()
 			video_tensor.append(bgr_im)
 
 		flow = torch.FloatTensor(channel,num_frame,size,size)

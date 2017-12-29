@@ -24,7 +24,7 @@ from PIL import Image
 from torchvision.transforms import ToPILImage
 from torch.optim.lr_scheduler import StepLR
 from p3d_model import transfer_model, P3D199, C3D, get_optim_policies
-from dataset import ucf101Dataset
+from dataset import ucf101Dataset,kineticsDataset
 #from visualize import make_dot
 
 
@@ -235,7 +235,7 @@ def main(options):
 			if options.batch_size == 1:
 				# print pred.numpy()[0], labels.data.numpy()
 				if pred.numpy()[0] != labels.data.numpy():
-					logging.info("pred: {0}, label: {1}".format(pred.numpy()[0], labels.data.numpy()))
+					logging.info("pred: {0}, label: {1}".format(pred.numpy()[0][0], labels.data.numpy()[0]))
 
 			# logging.info("loss at batch {0}: {1}".format(it, loss.data[0]))
 			# logging.debug("loss at batch {0}: {1}".format(it, loss.data[0]))
