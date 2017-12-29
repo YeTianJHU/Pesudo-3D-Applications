@@ -234,8 +234,8 @@ def main(options):
 
 			if options.batch_size == 1:
 				# print pred.numpy()[0], labels.data.numpy()
-				if pred.numpy()[0] != labels.data.numpy():
-					logging.info("pred: {0}, label: {1}".format(pred.numpy()[0][0], labels.data.numpy()[0]))
+				if pred.cpu().numpy()[0] != labels.cpu().data.numpy():
+					logging.info("pred: {0}, label: {1}".format(pred.cpu().numpy()[0][0], labels.cpu().data.numpy()[0]))
 
 			# logging.info("loss at batch {0}: {1}".format(it, loss.data[0]))
 			# logging.debug("loss at batch {0}: {1}".format(it, loss.data[0]))
