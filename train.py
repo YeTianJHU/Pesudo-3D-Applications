@@ -229,6 +229,11 @@ def main(options):
 			pred = train_output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
 			correct += pred.eq(labels.data.view_as(pred)).cpu().sum()
 
+			if options.batch_size == 1:
+				print pred.numpy()[0], labels.data.numpy()
+				if pred.numpy()[0] != labels.data.numpy():
+					logging.info("pred: {0}, label: {1}".format(pred.numpy()[0], labels.data.numpy()))
+
 			# logging.info("loss at batch {0}: {1}".format(it, loss.data[0]))
 			# logging.debug("loss at batch {0}: {1}".format(it, loss.data[0]))
 			optimizer.zero_grad()
