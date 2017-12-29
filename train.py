@@ -115,7 +115,10 @@ def main(options):
 		dset_train = ucf101Dataset(data_folder, train_file, label_file, transformations, size=options.size)
 
 		dset_test = ucf101Dataset(data_folder, test_file, label_file, transformations, size=options.size)
+	elif options.dataset == "kinetics":
+		dset_train = kineticsDataset(data_folder, train_file, label_file, transformations, size=options.size)
 
+		dset_test = kineticsDataset(data_folder, test_file, label_file, transformations, size=options.size)
 
 	train_loader = DataLoader(dset_train,
 							  batch_size = options.batch_size,
@@ -230,7 +233,7 @@ def main(options):
 			correct += pred.eq(labels.data.view_as(pred)).cpu().sum()
 
 			if options.batch_size == 1:
-				print pred.numpy()[0], labels.data.numpy()
+				# print pred.numpy()[0], labels.data.numpy()
 				if pred.numpy()[0] != labels.data.numpy():
 					logging.info("pred: {0}, label: {1}".format(pred.numpy()[0], labels.data.numpy()))
 

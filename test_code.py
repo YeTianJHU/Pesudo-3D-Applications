@@ -21,6 +21,9 @@ from PIL import Image
 
 from torchvision.transforms import ToPILImage
 
+import csv
+import skvideo.io
+import cv2
 def read_split_file(dir):
     res = []
     with open(dir) as f:
@@ -77,12 +80,49 @@ def trans_label(txt):
 	# print label_dict['HandStandPushups']
 	return label_dict
 
+def read_csv_file(dir):
+	content = []
+	with open(dir) as f:
+		f_csv = csv.reader(f)
+		headers = next(f_csv)
+		a = headers
+		for row in f_csv:
+			content.append(row)
+	return content
+
+def get_vid_dir(index,data_folder,video_content):
+	dir = join(data_folder, video_content[index][0])
+	dir = join(dir, video_content[index][1]+"*")
+	return dir
+
+def get_video_tensor(video_path):
+	vidcap = skvideo.io.VideoCapture(video_path)
+	vidcap.open(video_path)
+	while True:
+		flag, bgr_im = vidcap.read()
+		print flag
+		if not flag:
+			break
+		print bgr_im.shape()
 # file = os.path.join('/media/ye/youtube-8/ucfTrainTestlist/testlist01.txt')
-# res = read_split_file(file)
+# res = read_csv_file(file)
 # print res[0][1][:-6]
 
-dir = os.path.join('/home/ye/Works/C3D-TCN-Keras/frames/v_ApplyEyeMakeup_g01_c02')
-get_video_tensor(dir)
+file = os.path.join('/media/ye/Seagate Expansion Drive/Kinetics/data/kinetics_train.csv')
+res = read_csv_file(file)
+video_content = res
+data_folder = '/media/ye/youtube-8/kinetics/kinetics_train'
+path = get_vid_dir(0,data_folder,video_content)
+print path
+
+path = '/media/ye/youtube-8/kinetics/kinetics_train/abseiling/4YTwq0-73Y_000044_000054.mp4'
+print path
+
+get_video_tensor(path)
+
+
+# dir = os.path.join('/home/ye/Works/C3D-TCN-Keras/frames/v_ApplyEyeMakeup_g01_c02')
+# get_video_tensor(dir)
 
 # label_dict = trans_label('./ucfTrainTestlist/classInd.txt')
 # print (label_dict)
