@@ -452,14 +452,6 @@ def get_optim_policies(model=None,modality='RGB',enable_pbn=True):
 #     	output = self.logsoftmax(input)
 #     	return output
 
-def transfer_model(model,num_classes,model_type):
-	if model_type=="P3D":
-		num_ftrs=model.fc.in_features
-		model.fc=nn.Linear(num_ftrs,num_classes)
-	elif model_type=="C3D":
-		model.fc8=nn.Linear(4096, num_classes)
-	return model
-
 
 if __name__ == '__main__':
 
