@@ -23,7 +23,9 @@ from PIL import Image
 # import cv2
 from torchvision.transforms import ToPILImage
 from torch.optim.lr_scheduler import StepLR
-from p3d_model import transfer_model, P3D199, C3D, get_optim_policies
+from p3d_model import P3D199, C3D, get_optim_policies
+from i3dpt import Unit3Dpy, I3D
+from utils import transfer_model
 from dataset import ucf101Dataset,kineticsDataset
 #from visualize import make_dot
 
@@ -64,7 +66,7 @@ parser.add_argument("--use_policy", default=0, type=int,
 					help="policy for getting decay of learning rate")
 parser.add_argument("--use_trained_model", default=1, type=int,
 					help="whether use the pre-trained model on kinetics or not")
-parser.add_argument("--model", default="P3D",  choices=["P3D", "C3D"],
+parser.add_argument("--model", default="P3D",  choices=["P3D", "C3D","I3D"],
 					help="which machine to run the code. choice from ye_home and marcc")
 parser.add_argument("--dataset", default="UCF101",  choices=["UCF101"],
 					help="which dataset to use")
@@ -100,6 +102,8 @@ def main(options):
 
 	if options.model=="C3D":
 		options.size = 112
+	if options.model=="I3D":
+		options.size = 224
 		
 	if options.normalize:
 		transformations = transforms.Compose([transforms.Scale((options.size,options.size)),
@@ -146,6 +150,12 @@ def main(options):
 			model.load_state_dict(torch.load('c3d.pickle'))
 		else:
 			model = C3D()
+	elif options.model=="I3D":
+		if options.use_trained_model:
+			model = I3D(num_classes=400, modality='rgb')
+			model.load_state_dict(torch.load('model_rgb.pth'))
+		else:
+			model = I3D(num_classes=101, modality='rgb')
 	else:
 		logging.error("No such model: {0}".format(options.model))
 
@@ -155,7 +165,7 @@ def main(options):
 			param.requires_grad = False
 
 	model = transfer_model(model,num_classes=101, model_type=options.model)
-	logging.info("fc size is: {0}".format(model.fc))
+	# logging.info("fc size is: {0}".format(model.fc))
 
 	if use_cuda > 0:
 		model.cuda()
@@ -216,8 +226,12 @@ def main(options):
 			else:
 				vid_tensor, labels = Variable(vid_tensor), Variable(labels)
 
+		if options.model == "I3D":
 			train_output = model(vid_tensor)
-			train_output = torch.nn.Softmax()(train_output)
+			train_output = train_output[0]
+		else:
+			train_output = model(vid_tensor)
+			train_output = torch.nn.Softmax(dim=1)(train_output)
 
 			# print ('vis here!')
 			# vis = make_dot(train_output)
@@ -237,7 +251,7 @@ def main(options):
 				if pred.cpu().numpy()[0] != labels.cpu().data.numpy():
 					logging.info("pred: {0}, label: {1}".format(pred.cpu().numpy()[0][0], labels.cpu().data.numpy()[0]))
 
-			# logging.info("loss at batch {0}: {1}".format(it, loss.data[0]))
+			logging.info("loss at batch {0}: {1}".format(it, loss.data[0]))
 			# logging.debug("loss at batch {0}: {1}".format(it, loss.data[0]))
 			optimizer.zero_grad()
 			loss.backward()
@@ -273,8 +287,12 @@ def main(options):
 		else:
 			vid_tensor, labels = Variable(vid_tensor), Variable(labels)
 
-		test_output = model(vid_tensor)
-		test_output = torch.nn.Softmax(dim=1)(test_output)
+		if options.model == "I3D":
+			test_output = model(vid_tensor)
+			test_output = test_output[0]
+		else:
+			test_output = model(vid_tensor)
+			test_output = torch.nn.Softmax(dim=1)(test_output)
 
 		# print 'model output shape: ', test_output.size(), ' | label shape: ', labels.size()
 		# print (test_output.size())

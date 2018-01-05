@@ -21,7 +21,7 @@ from PIL import Image
 from torchvision.transforms import ToPILImage
 
 import csv
-import skvideo.io
+# import skvideo.io
 
 class ucf101Dataset(Dataset):
 	def __init__(self, data_folder, split_file, label_file, transform, num_labels=101, num_frame=16, channel=3, size=160):
