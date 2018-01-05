@@ -226,12 +226,12 @@ def main(options):
 			else:
 				vid_tensor, labels = Variable(vid_tensor), Variable(labels)
 
-		if options.model == "I3D":
-			train_output = model(vid_tensor)
-			train_output = train_output[0]
-		else:
-			train_output = model(vid_tensor)
-			train_output = torch.nn.Softmax(dim=1)(train_output)
+			if options.model == "I3D":
+				train_output = model(vid_tensor)
+				train_output = train_output[0]
+			else:
+				train_output = model(vid_tensor)
+				train_output = torch.nn.Softmax(dim=1)(train_output)
 
 			# print ('vis here!')
 			# vis = make_dot(train_output)
@@ -296,14 +296,13 @@ def main(options):
 
 		# print 'model output shape: ', test_output.size(), ' | label shape: ', labels.size()
 		# print (test_output.size())
-
 		loss = criterion(test_output, labels)
 		test_loss += loss.data[0]
 
 		pred = test_output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
 		correct += pred.eq(labels.data.view_as(pred)).cpu().sum()
 
-		# logging.info("loss at batch {0}: {1}".format(it, loss.data[0]))
+		logging.info("loss at batch {0}: {1}".format(it, loss.data[0]))
 		# logging.debug("loss at batch {0}: {1}".format(it, loss.data[0]))
 
 		if it % 50 == 0:
