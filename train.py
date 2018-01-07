@@ -200,17 +200,17 @@ def main(options):
 		else:
 			optimizer = eval("torch.optim." + options.optimizer)(model.parameters(), lr=options.learning_rate)
 
-	scheduler = StepLR(optimizer, step_size=options.lr_steps[0], gamma=0.1)
+	# scheduler = StepLR(optimizer, step_size=options.lr_steps[0], gamma=0.1)
 
 	# main training loop
 	# last_dev_avg_loss = float("inf")
 	for epoch_i in range(start_epoch, options.epochs):
 		logging.info("At {0}-th epoch.".format(epoch_i))
 		
-		if len(options.lr_steps)>0 and options.use_policy and options.optimizer=="SGD":
-				adjust_learning_rate(optimizer, epoch_i, options.lr_steps)
-		else:
-			scheduler.step()
+		# if len(options.lr_steps)>0 and options.use_policy and options.optimizer=="SGD":
+		# 		adjust_learning_rate(optimizer, epoch_i, options.lr_steps)
+		# else:
+		# 	scheduler.step()
 
 		train_loss = 0.0
 		correct = 0.0
@@ -225,6 +225,8 @@ def main(options):
 				vid_tensor, labels = Variable(vid_tensor).cuda(),  Variable(labels).cuda()
 			else:
 				vid_tensor, labels = Variable(vid_tensor), Variable(labels)
+
+			model.train()
 
 			if options.model == "I3D":
 				train_output = model(vid_tensor)
@@ -302,7 +304,7 @@ def main(options):
 		pred = test_output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
 		correct += pred.eq(labels.data.view_as(pred)).cpu().sum()
 
-		logging.info("loss at batch {0}: {1}".format(it, loss.data[0]))
+		# logging.info("loss at batch {0}: {1}".format(it, loss.data[0]))
 		# logging.debug("loss at batch {0}: {1}".format(it, loss.data[0]))
 
 		if it % 50 == 0:
