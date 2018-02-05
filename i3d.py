@@ -321,8 +321,9 @@ class I3D(nn.Module):
 if __name__ == '__main__':
 
     model = I3D()
+    model.cuda()
     model = model.eval()
-    data=torch.autograd.Variable(torch.rand(10,3,64,224,224))   # if modality=='Flow', please change the 2nd dimension 3==>2
+    data=torch.autograd.Variable(torch.rand(10,3,64,224,224)).cuda()   # if modality=='Flow', please change the 2nd dimension 3==>2
     out=model(data)
     # print (model)
     print (out[0].size())
